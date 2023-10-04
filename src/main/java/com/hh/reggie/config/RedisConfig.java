@@ -1,4 +1,4 @@
-package com.hh.reggie.common;
+package com.hh.reggie.config;
 
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
