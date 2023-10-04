@@ -47,6 +47,14 @@ public class DishController {
         log.info(dishDto.toString());
 
         dishService.saveWithFlavor(dishDto);
+
+        //清理所有菜品缓存
+        //Set keys = redisTemplate.keys("dish_*");
+        //redisTemplate.delete(keys);
+
+        //清理某个分类的菜品缓存
+        String key = "dish_" + dishDto.getCategoryId() + "_1";
+        redisTemplate.delete(key);
         return R.success("新增菜品成功");
     }
 
@@ -104,13 +112,6 @@ public class DishController {
 
         DishDto dishDto = dishService.getByIdWithFlavor(id);
 
-        //清理所有菜品缓存
-        //Set keys = redisTemplate.keys("dish_*");
-        //redisTemplate.delete(keys);
-
-        //清理某个分类的菜品缓存
-        String key = "dish_" + dishDto.getCategoryId() + "_1";
-        redisTemplate.delete(key);
         return R.success(dishDto);
     }
 
