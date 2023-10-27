@@ -48,6 +48,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         //查询当前用户的购物车数据
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ShoppingCart::getUserId,userId);
+        // todo 写代码初期，要会mysql，这些用MybatisPlus的，都改成Mybatis调用数据库，多写SQL
         List<ShoppingCart> shoppingCarts = shoppingCartService.list(queryWrapper);
 
         //查询用户数据
