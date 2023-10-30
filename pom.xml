@@ -95,6 +95,13 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
+        <!-- rocketmq -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client</artifactId>
+            <version>4.8.0</version> <!-- 使用最新版本 -->
+        </dependency>
+
     </dependencies>
 
     <build>

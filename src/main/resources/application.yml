@@ -26,3 +26,9 @@ mybatis-plus:
       id-type: ASSIGN_ID
 Reggie:
   path: E:\img\
+
+# RocketMQ配置
+rocketmq:
+  name-server: 127.0.0.1:9876
+  brokerIP1: localhost
+  brokerIP2: localhost
