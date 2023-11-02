@@ -1,8 +1,5 @@
 package com.hh.reggie.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-
 import com.hh.reggie.common.BaseContext;
 import com.hh.reggie.common.R;
 import com.hh.reggie.entity.AddressBook;
@@ -41,15 +38,19 @@ public class AddressBookController {
     @PutMapping("default")
     public R<AddressBook> setDefault(@RequestBody AddressBook addressBook) {
         log.info("addressBook:{}", addressBook);
-        LambdaUpdateWrapper<AddressBook> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(AddressBook::getUserId, BaseContext.getCurrentId());
-        wrapper.set(AddressBook::getIsDefault, 0);
+        //LambdaUpdateWrapper<AddressBook> wrapper = new LambdaUpdateWrapper<>();
+        //wrapper.eq(AddressBook::getUserId, BaseContext.getCurrentId());
+        //wrapper.set(AddressBook::getIsDefault, 0);
         //SQL:update address_book set is_default = 0 where user_id = ?
-        addressBookService.update(wrapper);
+
+        Long currentId = BaseContext.getCurrentId();
+
+        addressBookService.updateDefault(currentId);
 
         addressBook.setIsDefault(1);
         //SQL:update address_book set is_default = 1 where id = ?
-        addressBookService.updateById(addressBook);
+        Long id = addressBook.getId();
+        addressBookService.updateById(id);
         return R.success(addressBook);
     }
 
@@ -71,12 +72,13 @@ public class AddressBookController {
      */
     @GetMapping("default")
     public R<AddressBook> getDefault() {
-        LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AddressBook::getUserId, BaseContext.getCurrentId());
-        queryWrapper.eq(AddressBook::getIsDefault, 1);
+        //LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(AddressBook::getUserId, BaseContext.getCurrentId());
+        //queryWrapper.eq(AddressBook::getIsDefault, 1);
 
         //SQL:select * from address_book where user_id = ? and is_default = 1
-        AddressBook addressBook = addressBookService.getOne(queryWrapper);
+        Long currentId = BaseContext.getCurrentId();
+        AddressBook addressBook = addressBookService.getOne(currentId);
 
         if (null == addressBook) {
             return R.error("没有找到该对象");
@@ -94,11 +96,52 @@ public class AddressBookController {
         log.info("addressBook:{}", addressBook);
 
         //条件构造器
-        LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(null != addressBook.getUserId(), AddressBook::getUserId, addressBook.getUserId());
-        queryWrapper.orderByDesc(AddressBook::getUpdateTime);
+        //LambdaQueryWrapper<AddressBook> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(null != addressBook.getUserId(), AddressBook::getUserId, addressBook.getUserId());
+        //queryWrapper.orderByDesc(AddressBook::getUpdateTime);
+        Long userId = addressBook.getUserId();
 
         //SQL:select * from address_book where user_id = ? order by update_time desc
-        return R.success(addressBookService.list(queryWrapper));
+        return R.success(addressBookService.list(userId));
     }
+
+    /**
+     * 修改地址信息。
+     *
+     * @param addressBook
+     * @return
+     */
+    @PutMapping
+    public R<String> update(@RequestBody AddressBook addressBook) {
+        log.info("修改地址信息：{}", addressBook);
+        Long id = addressBook.getId();
+        // 进行更新
+        if (addressBookService.updateById(id)) {
+            return R.success("更新用户信息成功");
+        }
+        return R.success("更新用户信息失败");
+    }
+
+    /**
+     * 根据id删除地址（逻辑删除）
+     *
+     * @return
+     */
+    @DeleteMapping
+    public R<String> delete(Long ids) {
+        log.info("根据id删除地址：{}", ids);
+        // 逻辑删除：把指定id的用户is_deleted改为1即可
+        //update address_book set id_deleted =1 where id=ids;
+        //UpdateWrapper<AddressBook> addressBookUpdateWrapper = new UpdateWrapper<>();
+        //addressBookUpdateWrapper.set("is_deleted", 1);
+        //addressBookUpdateWrapper.eq("id", ids);
+        if (!addressBookService.updateDelete(ids)) {
+            return R.error("删除地址失败");
+        }
+        return R.error("删除地址成功");
+    }
+
+
+
+
 }

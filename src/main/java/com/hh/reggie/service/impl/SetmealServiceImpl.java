@@ -1,7 +1,7 @@
 package com.hh.reggie.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+
 import com.hh.reggie.common.CustomException;
 import com.hh.reggie.dto.SetmealDto;
 import com.hh.reggie.entity.Setmeal;
@@ -19,10 +19,18 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> implements SetmealService {
+public class SetmealServiceImpl implements SetmealService {
+
+    @Autowired
+    private SetmealMapper setmealMapper;
 
     @Autowired
     private SetmealDishService setmealDishService;
+
+    private void save(SetmealDto setmealDto) {
+        setmealMapper.save(setmealDto);
+    }
+
 
     @Override
     @Transactional
@@ -40,6 +48,7 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         setmealDishService.saveBatch(setmealDishes);
     }
 
+
     /**
      * 删除套餐，同时要删除套餐和菜品的关联关系
      * @param ids
@@ -47,11 +56,11 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
     @Transactional
     public void deleteWithDish(List<Long> ids) {
         //查询套餐的状态，确定套餐是否可以删除
-        LambdaQueryWrapper<Setmeal> queryWrapper1 = new LambdaQueryWrapper<>();
-        queryWrapper1.in(Setmeal::getId,ids);
-        queryWrapper1.eq(Setmeal::getStatus,1);
-        int count = this.count(queryWrapper1);
-        if(count > 0){
+        //LambdaQueryWrapper<Setmeal> queryWrapper1 = new LambdaQueryWrapper<>();
+        //queryWrapper1.in(Setmeal::getId,ids);
+        //queryWrapper1.eq(Setmeal::getStatus,1);
+        int seatmealcount = this.seatmealCount(ids);
+        if(seatmealcount > 0){
             //如果不能删除则抛出一个异常
             throw new CustomException("该套餐正在售卖中，不能删除！");
         }
@@ -60,8 +69,33 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
         this.removeByIds(ids);
 
         //删除关系表中的数据
-        LambdaQueryWrapper<SetmealDish> queryWrapper2 = new LambdaQueryWrapper<>();
-        queryWrapper2.in(SetmealDish::getSetmealId,ids);
-        setmealDishService.remove(queryWrapper2);
+        //LambdaQueryWrapper<SetmealDish> queryWrapper2 = new LambdaQueryWrapper<>();
+        //queryWrapper2.in(SetmealDish::getSetmealId,ids);
+        setmealDishService.remove(ids);
     }
+
+    public void removeByIds(List<Long> ids) {
+        setmealMapper.removeByIds(ids);
+    }
+
+    @Override
+    public List<Setmeal> list(Setmeal setmeal) {
+        return setmealMapper.list(setmeal);
+    }
+
+    @Override
+    public void page(int page, int pageSize, String name) {
+        setmealMapper.page(page,pageSize,name);
+    }
+
+    public int seatmealCount(List<Long> ids) {
+        return setmealMapper.seatmealCount(ids);
+    }
+
+    @Override
+    public int count(Long id) {
+        return setmealMapper.count(id);
+    }
+
+
 }

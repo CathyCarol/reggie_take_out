@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hh.reggie.mapper.SetmealDishMapper">
+    <insert id="saveBatch" parameterType="java.util.List">
+        insert into seatmeal_dish(name,price,copies) values
+        <foreach collection="list" separator="," item="com.hh.reggie.dto.SetmealDto">
+            (#{SetmealDto.name},#{SetmealDto.price},#{SetmealDto.copies})
+        </foreach>
+    </insert>
+
+    <delete id="remove" parameterType="java.util.List">
+        delete from sealmeal_dish
+        where seatmeal_id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

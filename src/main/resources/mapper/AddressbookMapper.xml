@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hh.reggie.mapper.AddressBookMapper">
+        <insert id="save" parameterType="com.hh.reggie.entity.AddressBook">
+            insert into address_book(id,user_id,consignee,sex,phone,province_code,province_name,city_code,city_name,district_code,district_name,detail,label,is_default)
+            values(#{id},#{userId},#{consignee},#{sex},#{phone},#{provinceCode},#{provinceName},#{cityCode},#{cityName},#{districtCode},#{districtName},#{detail},#{label},#{isDefault})
+        </insert>
+
+        <update id="updateDefault" parameterType="java.lang.Long">
+            update address_book set is_default = 0
+            where user_id = #{currentId}
+        </update>
+
+        <update id="updateById" parameterType="java.lang.Long">
+            update address_book set is_default = 0
+            where id = #{id}
+        </update>
+
+        <select id="getById" parameterType="com.hh.reggie.entity.AddressBook" resultType="com.hh.reggie.entity.AddressBook">
+            select * from address_book
+            where id = #{id}
+        </select>
+
+        <select id="getOne" parameterType="com.hh.reggie.entity.AddressBook" resultType="com.hh.reggie.entity.AddressBook">
+            select * from address_book
+            where user_id = #{currentId} and is_default = 1
+        </select>
+
+        <select id="list" parameterType="java.lang.Long" resultType="java.util.List">
+            select * from address_book
+            where user_id = #{userId}
+            order by update_time desc
+        </select>
+
+        <update id="updateDelete" parameterType="java.lang.Long">
+            update address_book
+            set id_deleted = 1
+            where i = #{ids}
+        </update>
+
+
+
+</mapper>

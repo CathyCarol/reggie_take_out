@@ -1,7 +1,5 @@
 package com.hh.reggie.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hh.reggie.common.R;
 import com.hh.reggie.entity.Category;
 import com.hh.reggie.service.CategoryService;
@@ -41,17 +39,18 @@ public class CategoryController {
      * @return
      */
     @GetMapping("/page")
-    public R<Page> page(int page,int pageSize){
+    public R<List<Category>> page(int page,int pageSize){
         //构造分页构造器
-        Page<Category> pageInfo = new Page<>(page,pageSize);
+        //Page<Category> pageInfo = new Page<>(page,pageSize);
         //构造条件构造器
-        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper();
+        //LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper();
         //添加排序条件
-        queryWrapper.orderByAsc(Category::getSort);
+        //queryWrapper.orderByAsc(Category::getSort);
         //执行查询
-        categoryService.page(pageInfo,queryWrapper);
+        int pageIndex = (page-1)*pageSize;
 
-        return R.success(pageInfo);
+        List<Category> page1 = categoryService.page(pageIndex, pageSize);
+        return R.success(page1);
     }
 
     /**
@@ -71,7 +70,8 @@ public class CategoryController {
     @PutMapping
     public R<String> update(@RequestBody Category category){
         log.info("修改分类信息:{}",category);
-        categoryService.updateById(category);
+        Long id = category.getId();
+        categoryService.updateById(id);
         return R.success("修改分类信息成功");
     }
 
@@ -83,13 +83,13 @@ public class CategoryController {
     @GetMapping("/list")
     public R<List<Category>> list(Category category){
         //条件构造器
-        LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
+        //LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
         //添加条件
-        queryWrapper.eq(category.getType()!=null,Category::getType,category.getType());
+        //queryWrapper.eq(category.getType()!=null,Category::getType,category.getType());
         //添加排序
-        queryWrapper.orderByAsc(Category::getSort).orderByDesc(Category::getUpdateTime);
-
-        List<Category> list = categoryService.list(queryWrapper);
+        //queryWrapper.orderByAsc(Category::getSort).orderByDesc(Category::getUpdateTime);
+        Integer type = category.getType();
+        List<Category> list = categoryService.list(type);
         return R.success(list);
     }
 }

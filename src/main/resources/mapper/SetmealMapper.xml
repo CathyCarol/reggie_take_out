@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hh.reggie.mapper.SetmealMapper">
+    <select id="seatmealCount" parameterType="java.util.List" resultType="int">
+        SELECT COUNT(*) FROM setmeal
+        WHERE id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND status = 1
+    </select>
+
+    <delete id="removeByIds" parameterType="java.util.List">
+        delete from setmeal
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="list" resultType="java.util.List" parameterType="com.hh.reggie.entity.Setmeal">
+        select * from setmeal
+        where category_id = #{categoryId} and status = #{status}
+        order by update_time desc
+    </select>
+
+    <select id="page">
+        select * from setmeal
+        where name = #{name}
+        order by update_time
+            limit #{startIndex},#{pageSize}
+    </select>
+
+
+</mapper>

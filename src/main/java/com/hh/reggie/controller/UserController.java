@@ -85,10 +85,10 @@ public class UserController {
         if(codeInSession != null && codeInSession.equals(code)){
             //如果能够比对成功，说明登录成功
 
-            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(User::getPhone,phone);
+            //LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            //queryWrapper.eq(User::getPhone,phone);
 
-            User user = userService.getOne(queryWrapper);
+            User user = userService.getOne(phone);
             if(user == null){
                 //判断当前手机号对应的用户是否为新用户，如果是新用户就自动完成注册
                 user = new User();

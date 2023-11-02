@@ -1,8 +1,6 @@
 package com.hh.reggie.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hh.reggie.common.BaseContext;
 import com.hh.reggie.common.CustomException;
 import com.hh.reggie.entity.*;
@@ -19,7 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
-public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implements OrderService {
+public class OrderServiceImpl implements OrderService {
+
+    @Autowired
+    private OrderMapper orderMapper;
 
     @Autowired
     private ShoppingCartService shoppingCartService;
@@ -46,9 +47,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         Long userId = BaseContext.getCurrentId();
 
         //查询当前用户的购物车数据
-        LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getUserId,userId);
-        List<ShoppingCart> shoppingCarts = shoppingCartService.list(queryWrapper);
+        //LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(ShoppingCart::getUserId,userId);
+        List<ShoppingCart> shoppingCarts = shoppingCartService.list(userId);
 
         //查询用户数据
         User user = userService.getById(userId);
@@ -98,6 +99,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Orders> implement
         orderDetailService.saveBatch(orderDetails);
 
         //清空购物车数据
-        shoppingCartService.remove(queryWrapper);
+        shoppingCartService.remove(userId);
+    }
+
+    public void save(Orders orders) {
+        orderMapper.save(orders);
     }
 }

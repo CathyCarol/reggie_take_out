@@ -1,7 +1,11 @@
 package com.hh.reggie.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.hh.reggie.entity.SetmealDish;
 
-public interface SetmealDishService extends IService<SetmealDish> {
+import java.util.List;
+
+public interface SetmealDishService{
+    void saveBatch(List<SetmealDish> setmealDishes);
+
+    void remove(List<Long> ids);
 }

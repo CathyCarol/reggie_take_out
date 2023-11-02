@@ -34,20 +34,24 @@ public class ShoppingCartController {
 
         //查询当前菜品或套餐是否在购物车中
         Long dishId = shoppingCart.getDishId();
+        Long setmealId = shoppingCart.getSetmealId();
 
-        LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getDishId,currentId);
+        //LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(ShoppingCart::getDishId,currentId);
+
+        ShoppingCart cartServiceOne = null;
 
         if(dishId != null){
             //添加到购物车的是菜品
-            queryWrapper.eq(ShoppingCart::getDishId,dishId);
-
+            //queryWrapper.eq(ShoppingCart::getDishId,dishId);
+            cartServiceOne = shoppingCartService.getDish(dishId);
         }else{
             //添加到购物车的是套餐
-            queryWrapper.eq(ShoppingCart::getSetmealId,shoppingCart.getSetmealId());
+            //queryWrapper.eq(ShoppingCart::getSetmealId,shoppingCart.getSetmealId());
+            cartServiceOne = shoppingCartService.getSetmeal(setmealId);
         }
 
-        ShoppingCart cartServiceOne = shoppingCartService.getOne(queryWrapper);
+
         if(cartServiceOne != null){
             //如果已经存在。数量则在原来数据的基础上+1
             Integer number = cartServiceOne.getNumber();
@@ -73,11 +77,12 @@ public class ShoppingCartController {
     public R<List<ShoppingCart>> list(){
         log.info("查看购物车..." );
 
-        LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
-        queryWrapper.orderByDesc(ShoppingCart::getCreateTime);
+        //LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
+        Long currentId = BaseContext.getCurrentId();
+        //queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
+        //queryWrapper.orderByDesc(ShoppingCart::getCreateTime);
 
-        List<ShoppingCart> list = shoppingCartService.list(queryWrapper);
+        List<ShoppingCart> list = shoppingCartService.list(currentId);
         return R.success(list);
     }
 
@@ -87,10 +92,10 @@ public class ShoppingCartController {
      */
     @DeleteMapping("/clean")
     public R<String> clean(){
-        LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
-
-        shoppingCartService.remove(queryWrapper);
+        //LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(ShoppingCart::getUserId,BaseContext.getCurrentId());
+        Long currentId = BaseContext.getCurrentId();
+        shoppingCartService.remove(currentId);
         return R.success("清空购物车成功！");
     }
 }

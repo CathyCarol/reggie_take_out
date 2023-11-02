@@ -1,12 +1,11 @@
 package com.hh.reggie.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hh.reggie.common.R;
 import com.hh.reggie.dto.SetmealDto;
 import com.hh.reggie.entity.Category;
 import com.hh.reggie.entity.Setmeal;
-import com.hh.reggie.service.CategoryService;
+import com.hh.reggie.mapper.CategoryMapper;
 import com.hh.reggie.service.SetmealDishService;
 import com.hh.reggie.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 套餐管理
+ */
+
 @RestController
 @RequestMapping("/setmeal")
 @Slf4j
@@ -30,8 +33,13 @@ public class SetmealController {
     private SetmealDishService setmealDishService;
 
     @Autowired
-    private CategoryService categoryService;
+    private CategoryMapper categoryMapper;
 
+    /**
+     * 新增套餐
+     * @param setmealDto
+     * @return
+     */
     @PostMapping
     @CacheEvict(value = "seatmealCache",allEntries = true)
     public R<String> save(@RequestBody SetmealDto setmealDto){
@@ -44,12 +52,13 @@ public class SetmealController {
         Page<Setmeal> pageInfo = new Page<>(page,pageSize);
         Page<SetmealDto> dtoPage = new Page<>();
 
-        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(name!=null,Setmeal::getName,name);
+        //LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.like(name!=null,Setmeal::getName,name);
 
-        queryWrapper.orderByDesc(Setmeal::getUpdateTime);
+        //queryWrapper.orderByDesc(Setmeal::getUpdateTime);
+        int startIndex = (page-1)*pageSize;
 
-        setmealService.page(pageInfo,queryWrapper);
+        setmealService.page(startIndex,pageSize,name);
 
         //对象拷贝
         BeanUtils.copyProperties(pageInfo,dtoPage,"records");
@@ -59,7 +68,7 @@ public class SetmealController {
             SetmealDto setmealDto = new SetmealDto();
             BeanUtils.copyProperties(item,setmealDto);
             Long categoryId = item.getCategoryId();
-            Category category = categoryService.getById(categoryId);
+            Category category = categoryMapper.getById(categoryId);
             if(category!=null){
                 String categoryName = category.getName();
                 setmealDto.setCategoryName(categoryName);
@@ -70,6 +79,11 @@ public class SetmealController {
         return R.success(dtoPage);
     }
 
+    /**
+     * 删除套餐
+     * @param ids
+     * @return
+     */
     @DeleteMapping
     @CacheEvict(value = "seatmealCache",allEntries = true)
     public R<String> delete(@RequestParam List<Long> ids){
@@ -86,11 +100,11 @@ public class SetmealController {
     @Cacheable(value = "setmealCache",key = "#setmeal.categoryId + '' + #setmeal.status")
     @GetMapping("/list")
     public R<List<Setmeal>> list(Setmeal setmeal){
-        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId());
-        queryWrapper.eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus());
-        queryWrapper.orderByDesc(Setmeal::getUpdateTime);
-        List<Setmeal> setmealList = setmealService.list(queryWrapper);
+        //LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId());
+        //queryWrapper.eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus());
+        //queryWrapper.orderByDesc(Setmeal::getUpdateTime);
+        List<Setmeal> setmealList = setmealService.list(setmeal);
         return R.success(setmealList);
     }
 
