@@ -3,14 +3,17 @@ package com.hh.reggie.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.hh.reggie.common.BaseContext;
 import com.hh.reggie.common.CustomException;
+import com.hh.reggie.common.enums.OrderStatusEnum;
 import com.hh.reggie.entity.*;
 import com.hh.reggie.mapper.OrderMapper;
 import com.hh.reggie.service.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,57 +44,56 @@ public class OrderServiceImpl implements OrderService {
      */
     @Transactional
     public void submit(Orders orders) {
-        // todo 优化这个方法的代码
-
-        //获取当前用户的id
-        Long userId = BaseContext.getCurrentId();
-
-        //查询当前用户的购物车数据
-        //LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
-        //queryWrapper.eq(ShoppingCart::getUserId,userId);
-        List<ShoppingCart> shoppingCarts = shoppingCartService.list(userId);
-
-        //查询用户数据
-        User user = userService.getById(userId);
-        //查询地址数据
+        // 查询地址数据
         Long addressBookId = orders.getAddressBookId();
+        if (addressBookId == null) {
+            throw new CustomException("地址信息参数错误");
+        }
         AddressBook addressBook = addressBookService.getById(addressBookId);
-        if(addressBook == null){
+        if (addressBook == null) {
             throw new CustomException("用户地址信息有误，不能下单！");
         }
-        long orderId = IdWorker.getId();//订单号
+        // 获取当前用户的id
+        Long userId = BaseContext.getCurrentId();
+        if (userId == null) {
+            throw new RuntimeException("获取用户信息错误");
+        }
 
-        AtomicInteger amount = new AtomicInteger(0);
+        // 查询当前用户的购物车数据
+        List<ShoppingCart> shoppingCarts = shoppingCartService.list(userId);
+        // 订单号
+        long orderId = IdWorker.getId();
 
         List<OrderDetail> orderDetails = shoppingCarts.stream().map((item) -> {
             OrderDetail orderDetail = new OrderDetail();
+            BeanUtils.copyProperties(item, orderDetail);
             orderDetail.setOrderId(orderId);
-            orderDetail.setNumber(item.getNumber());
-            orderDetail.setDishFlavor(item.getDishFlavor());
-            orderDetail.setDishId(item.getDishId());
-            orderDetail.setSetmealId(item.getSetmealId());
-            orderDetail.setName(item.getName());
-            orderDetail.setImage(item.getImage());
-            orderDetail.setAmount(item.getAmount());
-            amount.addAndGet(item.getAmount().multiply(new BigDecimal(item.getNumber())).intValue());
             return orderDetail;
         }).collect(Collectors.toList());
+        // 总金额
+        int amount = orderDetails.stream().mapToInt(obj -> {
+            return obj.getAmount().multiply(BigDecimal.valueOf(obj.getNumber())).intValue();
+        }).sum();
 
 
-        orders.setId(orderId);
-        orders.setOrderTime(LocalDateTime.now());
-        orders.setCheckoutTime(LocalDateTime.now());
-        orders.setStatus(2);
-        orders.setAmount(new BigDecimal(amount.get()));//总金额
-        orders.setUserId(userId);
-        orders.setNumber(String.valueOf(orderId));
-        orders.setUserName(user.getName());
-        orders.setConsignee(addressBook.getConsignee());
-        orders.setPhone(addressBook.getPhone());
-        orders.setAddress((addressBook.getProvinceName() == null ? "" : addressBook.getProvinceName())
-                + (addressBook.getCityName() == null ? "" : addressBook.getCityName())
-                + (addressBook.getDistrictName() == null ? "" : addressBook.getDistrictName())
-                + (addressBook.getDetail() == null ? "" : addressBook.getDetail()));
+        // 查询用户数据
+        User user = userService.getById(userId);
+
+        LocalDateTime now = LocalDateTime.now();
+        StringBuffer sb = new StringBuffer();
+        sb.append(addressBook.getProvinceName()).append(addressBook.getCityName()).append(addressBook.getDistrictName()).append(addressBook.getDetail());
+        orders = Orders.builder()
+                .id(orderId)
+                .orderTime(now)
+                .checkoutTime(now)
+                .status(OrderStatusEnum.WAIT_SEND.getCode())
+                .amount(new BigDecimal(amount))
+                .userId(userId)
+                .number(String.valueOf(orderId))
+                .userName(user.getName())
+                .consignee(addressBook.getConsignee())
+                .phone(addressBook.getPhone())
+                .address(sb.toString()).build();
         //向订单表插入数据，一条数据
         this.save(orders);
 
